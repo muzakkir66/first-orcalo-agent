@@ -1,0 +1,59 @@
+{
+  "currency": "USD",
+  "expenses": [
+    {
+      "date": "2026-03-02",
+      "title": "Netflix",
+      "category": "entertainment",
+      "amount": 14.99
+    },
+    {
+      "date": "2026-03-05",
+      "title": "Grocery run",
+      "category": "food",
+      "amount": 68.4
+    },
+    {
+      "date": "2026-03-08",
+      "title": "Fuel",
+      "category": "transport",
+      "amount": 35
+    },
+    {
+      "date": "2026-03-11",
+      "title": "Internet bill",
+      "category": "utilities",
+      "amount": 42
+    },
+    {
+      "date": "2026-03-15",
+      "title": "Coffee with client",
+      "category": "work",
+      "amount": 12.5
+    },
+    {
+      "date": "2026-03-19",
+      "title": "Restaurant dinner",
+      "category": "food",
+      "amount": 27.8
+    },
+    {
+      "date": "2026-03-22",
+      "title": "Mobile top-up",
+      "category": "utilities",
+      "amount": 9.99
+    },
+    {
+      "date": "2026-03-26",
+      "title": "Taxi",
+      "category": "transport",
+      "amount": 18.75
+    },
+    {
+      "date": "2026-02-10",
+      "title": "Gym membership",
+      "category": "health",
+      "amount": 25
+    }
+  ]
+}

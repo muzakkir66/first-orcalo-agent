@@ -48,3 +48,21 @@ Token-saving choices already built in:
 - low default `max_tokens`
 - low temperature
 - only the current user prompt is sent, not full history
+
+## Local tools
+
+This project can now read local data before calling the LLM.
+
+Example:
+
+```bash
+node --env-file=.env index.js "What are my personal expenses this month? or etc.."
+```
+
+When the prompt looks like an expense question, the app reads [data/personal-expenses.json](D:\AI\first-orcalo-agent\data\personal-expenses.json), summarizes the current month, and sends that result to the model as tool context.
+
+Why this helps:
+
+- the answer comes from your file, not from model memory
+- it works around normal LLM knowledge limitations
+- only the summarized data is sent, which saves tokens

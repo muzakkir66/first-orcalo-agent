@@ -1,21 +1,33 @@
+import { getExpenseToolContext, isExpenseQuestion } from "./tools/expenses.js";
+
 const apiKey = process.env.GROQ_API_KEY ?? process.env.GRAQ_API_KEY;
 const model = process.env.GROQ_MODEL ?? "llama-3.1-8b-instant";
 const defaultMaxTokens = Number(process.env.GROQ_MAX_TOKENS ?? 180);
 
-function buildMessages(userPrompt) {
-  return [
+function buildMessages(userPrompt, toolContext) {
+  const messages = [
     {
       role: "system",
       content:
-        "You are a compact coding assistant. Return complete answers, no markdown fences, and keep explanations brief unless asked.",
-    },
-    {
-      role: "user",
-      content: userPrompt,
+        "You are a compact coding assistant. Return complete answers, no markdown fences, and keep explanations brief unless asked. If tool data is provided, treat it as the source of truth.",
     },
   ];
-}
 
+  if (toolContext) {
+    messages.push({
+      role: "system",
+      content: `Tool result from ${toolContext.toolName}:\n${toolContext.content}`,
+    });
+  }
+
+  messages.push({
+    role: "user",
+    content: userPrompt,
+  });
+
+  return messages;
+}
+// for token calculation
 function parseArgs(argv) {
   let maxTokens = defaultMaxTokens;
   const promptParts = [];
@@ -45,7 +57,17 @@ function parseArgs(argv) {
   };
 }
 
-async function askGroq(userPrompt, maxTokens) {
+// Route data-related questions to local tools before asking the model.
+async function resolveToolContext(userPrompt) {
+  if (!isExpenseQuestion(userPrompt)) {
+    return null;
+  }
+
+  return getExpenseToolContext();
+}
+
+// Keep the LLM request path separate from local tool logic so the entry file stays readable.
+async function askGroq(userPrompt, maxTokens, toolContext) {
   if (!apiKey) {
     throw new Error("Missing GROQ_API_KEY. Add it to your .env file.");
   }
@@ -60,7 +82,7 @@ async function askGroq(userPrompt, maxTokens) {
       model,
       temperature: 0.2,
       max_tokens: maxTokens,
-      messages: buildMessages(userPrompt),
+      messages: buildMessages(userPrompt, toolContext),
     }),
   });
 
@@ -78,6 +100,10 @@ async function askGroq(userPrompt, maxTokens) {
 
   console.log(answer);
 
+  if (toolContext) {
+    console.error(`tool=${toolContext.toolName}`);
+  }
+
   if (data.usage) {
     console.error(
       `tokens prompt=${data.usage.prompt_tokens ?? 0} completion=${data.usage.completion_tokens ?? 0} total=${data.usage.total_tokens ?? 0}`,
@@ -85,6 +111,7 @@ async function askGroq(userPrompt, maxTokens) {
   }
 }
 
+// Parse the CLI input once, then either enrich the prompt with tool data or send it directly.
 const { userPrompt, maxTokens } = parseArgs(process.argv.slice(2));
 
 if (!userPrompt) {
@@ -92,7 +119,9 @@ if (!userPrompt) {
   process.exit(1);
 }
 
-askGroq(userPrompt, maxTokens).catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+resolveToolContext(userPrompt)
+  .then((toolContext) => askGroq(userPrompt, maxTokens, toolContext))
+  .catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
