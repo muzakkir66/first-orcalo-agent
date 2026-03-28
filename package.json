@@ -1,0 +1,15 @@
+{
+  "name": "first-orcalo-agent",
+  "module": "index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "ask": "node --env-file=.env index.js"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
